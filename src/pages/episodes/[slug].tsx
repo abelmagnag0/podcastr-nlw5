@@ -1,14 +1,21 @@
-import { parseISO } from 'date-fns';
-import format from 'date-fns/format';
-import { ptBR } from 'date-fns/locale';
 import { GetStaticPaths, GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
+
+import { useContext } from 'react';
+import { PlayerContext } from '../../contexts/PlayerContext';
+
 import { api } from '../../services/api';
+
+import { parseISO } from 'date-fns';
+import format from 'date-fns/format';
+import { ptBR } from 'date-fns/locale';
+
 import { convertDurationToTimeString } from '../../utils/convertDurationToTimeString';
 
 import styles from './episode.module.scss';
+
 
 interface Episode {
   id: string;
@@ -27,7 +34,7 @@ interface EpisodeProps {
 }
 
 export default function Episode({ episode }: EpisodeProps) {
-  const router = useRouter();
+  const {} = useContext(PlayerContext)
 
   return (
     <div className={styles.episode}>
@@ -69,8 +76,24 @@ export default function Episode({ episode }: EpisodeProps) {
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
+  const { data } = await api.get('episodes', {
+    params: {
+      _limit: 2,
+      _sort: 'published_at',
+      _order: 'desc',
+    }
+  })
+
+  const paths = data.map((episode) => {
+    return {
+      params: {
+        slug: episode.id
+      }
+    }
+  })
+
   return {
-    paths: [],
+    paths,
     fallback: 'blocking'
   }
 }
